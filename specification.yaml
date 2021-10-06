@@ -1,0 +1,92 @@
+openapi: 3.0.3
+
+info:
+  title: okctl-metrics-backend
+  description: A service for collecting metrics in okctl
+  version: 0.0.1
+  contact:
+    name: Team Kjøremiljø
+    email: okctl@oslo.kommune.no
+    url: https://okctl.io
+  license:
+    name: MIT
+    url: https://mit-license.org/
+
+tags:
+  - name: collection
+    description: Endpoints working on collections
+  - name: meta
+    description: Endpoints for meta operations
+
+paths:
+  /:
+    get:
+      tags:
+        - meta
+      description: Get an overview of service meta information
+      responses:
+        200:
+          description: A collection of service meta URLs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceMeta'
+  /z/health:
+    get:
+      tags:
+        - meta
+      description: Check health status
+      responses:
+        200:
+          description: Service is alive and accepting connections
+  /z/specification:
+    get:
+      tags:
+        - meta
+      description: Retrieve service API specification
+      responses:
+        200:
+          description: Successfully retrieved API specification
+
+  /metrics/event:
+    post:
+      tags:
+        - collection
+      description: Submit a metric event
+      responses:
+        201:
+          description: Successfully submitted a new event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        400:
+          $ref: '#/components/responses/400BadRequest'
+
+components:
+  responses:
+    400BadRequest:
+      description: Malformed request
+  schemas:
+    Event:
+      example:
+        ID: 9cfb99f9-22d9-4a5b-bfd0-353fee86db50
+        Category: cluster
+        Action: create
+      properties:
+        ID:
+          type: string
+          description: A UUID used to combine events
+        Category:
+          type: string
+          description: A label used to categorize events
+        Action:
+          type: string
+          description: A label used to identify the event type
+    ServiceMeta:
+      example:
+        specification: https://metrics.kjoremiljo-prod.oslo.systems/z/specification
+      properties:
+        specification:
+          type: string
+          description: URL to the API specification
