@@ -1,0 +1,30 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - pkg/**
+      - main.go
+      - Dockerfile
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          fetch-depth: '1'
+
+    - run: make check
+
+    - run: echo "image_name=okctl-metrics-service" >> $GITHUB_ENV
+    - run: echo "image_version=$(git tag | sort -V | tail -1)" >> $GITHUB_ENV
+    - run: echo "image_uri=${{ env.image_name}}:${{ env.image_version}}" >> $GITHUB_ENV
+    
+    - name: Build the Docker image
+      run: docker build . ${{ env.image_uri }}
+
+    - name: Push Docker image
+      run: docker push ${{ env.image_uri }}
