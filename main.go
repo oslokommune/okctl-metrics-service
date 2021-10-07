@@ -38,7 +38,5 @@ func main() {
 
 	router := sw.New(cfg, specification)
 
-	println("delete me")
-
 	log.Fatal(router.Run(fmt.Sprintf(":%d", cfg.Port)))
 }
