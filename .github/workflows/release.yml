@@ -15,9 +15,18 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-          fetch-depth: '1'
+        fetch-depth: '0'
 
     - run: make check
+
+    - name: Github Tag Bump
+      id: bump_version
+      uses: anothrNick/github-tag-action@1.36.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DEFAULT_BUMP: patch
+        RELEASE_BRANCHES: main
+        WITH_V: true
 
     - run: echo "image_name=okctl-metrics-service" >> $GITHUB_ENV
     - run: echo "image_version=$(git tag | sort -V | tail -1)" >> $GITHUB_ENV
