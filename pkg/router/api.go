@@ -13,6 +13,7 @@ func New(cfg config.Config, specification []byte) *gin.Engine {
 
 	router.GET("/", meta.GenerateServiceMetaHandler(cfg))
 	router.GET("/z/health", meta.GenerateHealthHandler())
+	router.GET("/z/prometheus", meta.GeneratePrometheusHandler())
 
 	configureV1Routes(router, specification)
 

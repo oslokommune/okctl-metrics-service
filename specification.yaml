@@ -47,6 +47,14 @@ paths:
       responses:
         200:
           description: Successfully retrieved API specification
+  /z/prometheus:
+    get:
+      tags:
+        - meta
+      description: Contains metrics for use with Prometheus
+      responses:
+        200:
+          description: Metrics in a Prometheus friendly format
 
   /metrics/event:
     post:
