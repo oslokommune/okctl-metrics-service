@@ -13,6 +13,12 @@ func New(cfg config.Config, specification []byte) *gin.Engine {
 
 	router.GET("/", meta.GenerateServiceMetaHandler(cfg))
 
+	configureV1Routes(router, specification)
+
+	return router
+}
+
+func configureV1Routes(router *gin.Engine, specification []byte) {
 	v1Group := router.Group("/v1")
 
 	v1MetaGroup := v1Group.Group("/z")
@@ -20,6 +26,4 @@ func New(cfg config.Config, specification []byte) *gin.Engine {
 
 	v1MetricsGroup := v1Group.Group("/metrics")
 	attachRoutes(v1MetricsGroup, metrics.GetRoutes())
-
-	return router
 }
