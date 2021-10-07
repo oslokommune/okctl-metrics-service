@@ -38,5 +38,7 @@ func main() {
 
 	router := sw.New(cfg, specification)
 
+	println("slett meg")
+
 	log.Fatal(router.Run(fmt.Sprintf(":%d", cfg.Port)))
 }
