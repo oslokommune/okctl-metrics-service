@@ -12,6 +12,7 @@ func New(cfg config.Config, specification []byte) *gin.Engine {
 	router := gin.Default()
 
 	router.GET("/", meta.GenerateServiceMetaHandler(cfg))
+	router.GET("/z/health", meta.GenerateHealthHandler())
 
 	configureV1Routes(router, specification)
 

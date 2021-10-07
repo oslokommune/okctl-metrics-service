@@ -31,3 +31,10 @@ func GenerateServiceMetaHandler(cfg config.Config) gin.HandlerFunc {
 		})
 	}
 }
+
+// GenerateHealthHandler creates a handler for health checks
+func GenerateHealthHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	}
+}
