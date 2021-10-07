@@ -38,7 +38,15 @@ paths:
       description: Check health status
       responses:
         200:
-          description: Service is alive and accepting connections
+          description: Service is alive
+  /z/ready:
+    get:
+      tags:
+        - meta
+      description: Check ready status
+      responses:
+        200:
+          description: Service is accepting connections
   /z/specification:
     get:
       tags:
