@@ -61,4 +61,4 @@ jobs:
         # A custom webhook event name.
         event-type: new-release
         # JSON payload with extra information about the webhook event that your action or worklow may use.
-        client-payload: '{"name": "okctl-metrics-service", "version": "${{ env.image_version }}"}'
+        client-payload: '{"name": "okctl-metrics-service", "version": "${{ env.image_version }}", "uri": "${{ env.image_uri }}}"'
