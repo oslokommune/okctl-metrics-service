@@ -36,7 +36,7 @@ jobs:
     - run: echo "image_uri=${{ env.image_name}}:${{ env.image_version}}" >> $GITHUB_ENV
     
     - name: Build the Docker image
-      run: docker build . ${{ env.image_uri }}
+      run: docker build --tag ${{ env.image_uri }} .
 
     - name: Push Docker image
       run: docker push ${{ env.image_uri }}
