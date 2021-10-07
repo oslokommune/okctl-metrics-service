@@ -31,10 +31,11 @@ jobs:
         RELEASE_BRANCHES: main
         WITH_V: true
 
-    - run: echo "image_registry=ghcr.io/oslokommune" >> $GITHUB_ENV
-    - run: echo "image_name=okctl-metrics-service" >> $GITHUB_ENV
-    - run: echo "image_version=$(git tag | sort -V | tail -1)" >> $GITHUB_ENV
-    - run: echo "image_uri=${{ env.image_registry }}/${{ env.image_name}}:${{ env.image_version}}" >> $GITHUB_ENV
+    - run: |
+      echo "image_registry=ghcr.io/oslokommune" >> $GITHUB_ENV
+      echo "image_name=okctl-metrics-service" >> $GITHUB_ENV
+      echo "image_version=$(git tag | sort -V | tail -1)" >> $GITHUB_ENV
+      echo "image_uri=${{ env.image_registry }}/${{ env.image_name}}:${{ env.image_version}}" >> $GITHUB_ENV
     
     - name: Build the Docker image
       run: docker build --tag ${{ env.image_uri }} .
