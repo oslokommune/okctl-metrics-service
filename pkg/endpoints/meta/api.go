@@ -2,6 +2,7 @@ package meta
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -36,5 +37,14 @@ func GenerateServiceMetaHandler(cfg config.Config) gin.HandlerFunc {
 func GenerateHealthHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Status(http.StatusOK)
+	}
+}
+
+// GeneratePrometheusHandler creates a handler for prometheus harvesting
+func GeneratePrometheusHandler() gin.HandlerFunc {
+	prometheusHandler := promhttp.Handler()
+
+	return func(c *gin.Context) {
+		prometheusHandler.ServeHTTP(c.Writer, c.Request)
 	}
 }
