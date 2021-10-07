@@ -4,8 +4,8 @@ name: Dispatch release
 
 # Controls when the workflow will run
 on:
-  registry_package:
-    types: [updated]
+  release:
+    types: [published]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -31,4 +31,4 @@ jobs:
           # A custom webhook event name.
           event-type: new-release
           # JSON payload with extra information about the webhook event that your action or worklow may use.
-          client-payload: '{"version": "${{ github.event.registry_package.package_version.version }}"}'
+          client-payload: '{"version": "${{ github.event.release.tag_name }}"}'
