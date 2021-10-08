@@ -9,13 +9,28 @@ import (
 
 // New configures a new router for handling requests to the service
 func New(cfg config.Config, specification []byte) *gin.Engine {
-	router := gin.Default()
+	router := gin.New()
+
+	configureLogging(router)
 
 	configureMetaRoutes(router, cfg)
 
 	configureV1Routes(router, specification)
 
 	return router
+}
+
+func configureLogging(router *gin.Engine) {
+	router.Use(gin.Recovery())
+
+	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		SkipPaths: []string{
+			"/",
+			"/z/health",
+			"/z/ready",
+			"/z/prometheus",
+		},
+	}))
 }
 
 func configureMetaRoutes(router *gin.Engine, cfg config.Config) {
