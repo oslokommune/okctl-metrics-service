@@ -47,14 +47,6 @@ paths:
       responses:
         200:
           description: Service is accepting connections
-  /z/specification:
-    get:
-      tags:
-        - meta
-      description: Retrieve service API specification
-      responses:
-        200:
-          description: Successfully retrieved API specification
   /z/prometheus:
     get:
       tags:
@@ -64,6 +56,14 @@ paths:
         200:
           description: Metrics in a Prometheus friendly format
 
+  /v1/z/specification:
+    get:
+      tags:
+        - meta
+      description: Retrieve service API specification
+      responses:
+        200:
+          description: Successfully retrieved API specification
   /metrics/events:
     post:
       tags:
