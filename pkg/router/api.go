@@ -11,14 +11,18 @@ import (
 func New(cfg config.Config, specification []byte) *gin.Engine {
 	router := gin.Default()
 
-	router.GET("/", meta.GenerateServiceMetaHandler(cfg))
-	router.GET("/z/health", meta.GenerateHealthHandler())
-	router.GET("/z/ready", meta.GenerateHealthHandler())
-	router.GET("/z/prometheus", meta.GeneratePrometheusHandler())
+	configureMetaRoutes(router, cfg)
 
 	configureV1Routes(router, specification)
 
 	return router
+}
+
+func configureMetaRoutes(router *gin.Engine, cfg config.Config) {
+	router.GET("/", meta.GenerateServiceMetaHandler(cfg))
+	router.GET("/z/health", meta.GenerateHealthHandler())
+	router.GET("/z/ready", meta.GenerateHealthHandler())
+	router.GET("/z/prometheus", meta.GeneratePrometheusHandler())
 }
 
 func configureV1Routes(router *gin.Engine, specification []byte) {
