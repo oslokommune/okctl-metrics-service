@@ -101,8 +101,10 @@ func TestMetrics(t *testing.T) {
 const mockURL = "http://localhost:3000/v1"
 
 func generateMockConfig() config.Config {
-	return config.Config{
-		BaseURL: "http://localhost",
-		Port:    3000,
-	}
+	cfg, _ := config.Generate()
+
+	cfg.BaseURL = "http://localhost"
+	cfg.Port = 3000
+
+	return cfg
 }
