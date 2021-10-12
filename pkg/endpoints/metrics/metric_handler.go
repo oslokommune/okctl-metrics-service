@@ -45,7 +45,7 @@ func generateMetricHandler(cfg config.Config) gin.HandlerFunc {
 
 		err = registerMetric(userAgent, event)
 		if err != nil {
-			c.Status(http.StatusInternalServerError)
+			c.JSON(http.StatusInternalServerError, core.ErrorResponse{Error: err.Error()})
 
 			return
 		}
@@ -55,7 +55,7 @@ func generateMetricHandler(cfg config.Config) gin.HandlerFunc {
 }
 
 func registerMetric(prefix string, event Event) error {
-	key := fmt.Sprintf("%s_%s_%s", prefix, event.Category, event.Action)
+	key := prometheus.BuildFQName(prefix, string(event.Category), string(event.Action))
 
 	if _, ok := counters[key]; !ok {
 		counters[key] = prometheus.NewCounter(prometheus.CounterOpts{Name: key})
