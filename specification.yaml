@@ -64,7 +64,7 @@ paths:
       responses:
         200:
           description: Successfully retrieved API specification
-  /metrics/events:
+  /v1/metrics/events:
     post:
       tags:
         - collection
