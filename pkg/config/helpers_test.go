@@ -32,12 +32,6 @@ func TestGetList(t *testing.T) {
 			expect:    []string{"okctl", "okctl-dev", "nese"},
 		},
 		{
-			name: "Should work with multiple values, finishing with a semi colon",
-
-			withValue: "okctl;okctl-dev;nese;",
-			expect:    []string{"okctl", "okctl-dev", "nese"},
-		},
-		{
 			name: "Should work with no values",
 
 			withValue: "",
