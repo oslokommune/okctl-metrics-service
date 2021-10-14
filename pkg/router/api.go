@@ -15,7 +15,7 @@ func New(cfg config.Config, specification []byte) *gin.Engine {
 
 	configureMetaRoutes(router, cfg)
 
-	configureV1Routes(router, specification)
+	configureV1Routes(router, cfg, specification)
 
 	return router
 }
@@ -40,12 +40,12 @@ func configureMetaRoutes(router *gin.Engine, cfg config.Config) {
 	router.GET("/z/prometheus", meta.GeneratePrometheusHandler())
 }
 
-func configureV1Routes(router *gin.Engine, specification []byte) {
+func configureV1Routes(router *gin.Engine, cfg config.Config, specification []byte) {
 	v1Group := router.Group("/v1")
 
 	v1MetaGroup := v1Group.Group("/z")
 	attachRoutes(v1MetaGroup, meta.GetRoutes(specification))
 
 	v1MetricsGroup := v1Group.Group("/metrics")
-	attachRoutes(v1MetricsGroup, metrics.GetRoutes())
+	attachRoutes(v1MetricsGroup, metrics.GetRoutes(cfg))
 }

@@ -2,12 +2,12 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"strconv"
+	"strings"
 )
 
-func getString(key, defaultValue string) string {
-	result := os.Getenv(key)
+func getString(getter stringValueGetter, key, defaultValue string) string {
+	result := getter(key)
 	if result == "" {
 		return defaultValue
 	}
@@ -15,8 +15,8 @@ func getString(key, defaultValue string) string {
 	return result
 }
 
-func getInt(key string, defaultValue int) (int, error) {
-	result := os.Getenv(key)
+func getInt(getter stringValueGetter, key string, defaultValue int) (int, error) {
+	result := getter(key)
 	if result == "" {
 		return defaultValue, nil
 	}
@@ -27,4 +27,17 @@ func getInt(key string, defaultValue int) (int, error) {
 	}
 
 	return resultAsInt, nil
+}
+
+func getStringList(getter stringValueGetter, key string, defaultValue []string) []string {
+	result := getter(key)
+	if result == "" {
+		return defaultValue
+	}
+
+	if strings.HasSuffix(result, ";") {
+		result = result[:len(result)-1]
+	}
+
+	return strings.Split(result, ";")
 }

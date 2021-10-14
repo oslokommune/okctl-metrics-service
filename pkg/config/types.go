@@ -7,6 +7,9 @@ const (
 
 // Config contains necessary configuration for the service
 type Config struct {
-	BaseURL string
-	Port    int
+	BaseURL     string
+	LegalAgents []string
+	Port        int
 }
+
+type stringValueGetter func(key string) string

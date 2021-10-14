@@ -3,19 +3,21 @@ package metrics
 import (
 	"net/http"
 
+	"github.com/oslokommune/okctl-metrics-service/pkg/config"
+
 	validation "github.com/go-ozzo/ozzo-validation"
 
 	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints"
 )
 
 // GetRoutes returns endpoints related to metric handling
-func GetRoutes() endpoints.Routes {
+func GetRoutes(cfg config.Config) endpoints.Routes {
 	return endpoints.Routes{
 		endpoints.Route{
 			Name:        "SubmitEvent",
 			Method:      http.MethodPost,
 			Pattern:     "/events",
-			HandlerFunc: generateMetricHandler(),
+			HandlerFunc: generateMetricHandler(cfg),
 		},
 	}
 }

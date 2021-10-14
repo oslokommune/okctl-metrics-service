@@ -2,10 +2,17 @@ package tests
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
+	"strconv"
 	"testing"
+
+	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics"
 
 	"github.com/stretchr/testify/assert"
 
@@ -13,7 +20,7 @@ import (
 	"github.com/oslokommune/okctl-metrics-service/pkg/router"
 )
 
-func TestMetrics(t *testing.T) {
+func TestMetricsStatusCodes(t *testing.T) {
 	testCases := []struct {
 		name string
 
@@ -26,7 +33,7 @@ func TestMetrics(t *testing.T) {
 			withRequest: func() *http.Request {
 				req, _ := http.NewRequest(
 					http.MethodPost,
-					fmt.Sprintf("%s/metrics/events", mockURL),
+					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
 					bytes.NewBufferString("{}"),
 				)
 				req.Header.Add("User-Agent", "chromium")
@@ -41,7 +48,7 @@ func TestMetrics(t *testing.T) {
 			withRequest: func() *http.Request {
 				req, _ := http.NewRequest(
 					http.MethodPost,
-					fmt.Sprintf("%s/metrics/events", mockURL),
+					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
 					bytes.NewBufferString(`{"category": "cluster", "action": "apply"}`),
 				)
 				req.Header.Add("User-Agent", "okctl")
@@ -57,7 +64,7 @@ func TestMetrics(t *testing.T) {
 			withRequest: func() *http.Request {
 				req, _ := http.NewRequest(
 					http.MethodPost,
-					fmt.Sprintf("%s/metrics/events", mockURL),
+					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
 					bytes.NewBufferString(`{"category": "automation", "action": "apply"}`),
 				)
 				req.Header.Add("User-Agent", "okctl")
@@ -72,7 +79,7 @@ func TestMetrics(t *testing.T) {
 			withRequest: func() *http.Request {
 				req, _ := http.NewRequest(
 					http.MethodPost,
-					fmt.Sprintf("%s/metrics/events", mockURL),
+					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
 					bytes.NewBufferString(`{"category": "cluster", "action": "applY"}`),
 				)
 				req.Header.Add("User-Agent", "okctl")
@@ -98,11 +105,148 @@ func TestMetrics(t *testing.T) {
 	}
 }
 
-const mockURL = "http://localhost:3000/v1"
+type hit struct {
+	Key   string
+	Value int
+}
+
+func publishEvent(t *testing.T, baseURL string, event metrics.Event) {
+	payload, err := json.Marshal(event)
+	assert.NoError(t, err)
+
+	req := httptest.NewRequest(
+		http.MethodPost,
+		fmt.Sprintf("%s/v1/metrics/events", baseURL),
+		bytes.NewReader(payload),
+	)
+
+	req.Header.Add("User-Agent", "okctl")
+	req.Header.Add("Content-Type", "application/json")
+
+	req.RequestURI = ""
+
+	client := http.Client{}
+
+	res, err := client.Do(req)
+	assert.NoError(t, err)
+
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	assert.Equal(t, http.StatusCreated, res.StatusCode)
+}
+
+func getCounterValue(t *testing.T, baseURL string, key string) int {
+	req := httptest.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/z/prometheus", baseURL),
+		nil,
+	)
+
+	req.RequestURI = ""
+
+	client := http.Client{}
+
+	res, err := client.Do(req)
+	assert.NoError(t, err)
+
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	rawBody, err := io.ReadAll(res.Body)
+	assert.NoError(t, err)
+
+	re, err := regexp.Compile(fmt.Sprintf("%s (?P<counter>\\d+)", key))
+	assert.NoError(t, err)
+
+	result := re.FindStringSubmatch(string(rawBody))
+	if len(result) == 0 {
+		return 0
+	}
+
+	counter, err := strconv.Atoi(result[re.SubexpIndex("counter")])
+	assert.NoError(t, err)
+
+	return counter
+}
+
+func TestAtoB(t *testing.T) {
+	/*
+		Due to the Prometheus lib having a global state and no reset/clean functionality, resetting between tests is a
+		hassle. I chose to test the difference instead
+	*/
+	testCases := []struct {
+		name       string
+		withEvents []metrics.Event
+		expectHit  hit
+	}{
+		{
+			name: "Should add and bump metric with one hit",
+			withEvents: []metrics.Event{
+				{
+					Category: metrics.CategoryCluster,
+					Action:   metrics.ActionScaffold,
+				},
+			},
+			expectHit: hit{
+				Key:   "okctl_cluster_scaffold",
+				Value: 1,
+			},
+		},
+		{
+			name: "Should add and bump metric with multiple hits",
+			withEvents: []metrics.Event{
+				{
+					Category: metrics.CategoryCluster,
+					Action:   metrics.ActionScaffold,
+				},
+				{
+					Category: metrics.CategoryCluster,
+					Action:   metrics.ActionScaffold,
+				},
+				{
+					Category: metrics.CategoryCluster,
+					Action:   metrics.ActionScaffold,
+				},
+			},
+			expectHit: hit{
+				Key:   "okctl_cluster_scaffold",
+				Value: 3,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(router.New(generateMockConfig(), []byte("")))
+			defer server.Close()
+
+			originalValue := getCounterValue(t, server.URL, tc.expectHit.Key)
+
+			for _, event := range tc.withEvents {
+				publishEvent(t, server.URL, event)
+			}
+
+			newValue := getCounterValue(t, server.URL, tc.expectHit.Key)
+
+			diff := math.Abs(float64(newValue - originalValue))
+
+			assert.Equal(t, tc.expectHit.Value, int(diff))
+		})
+	}
+}
+
+const mockBaseURL = "http://localhost:3000"
 
 func generateMockConfig() config.Config {
-	return config.Config{
-		BaseURL: "http://localhost",
-		Port:    3000,
-	}
+	cfg, _ := config.Generate()
+
+	cfg.BaseURL = "http://localhost"
+	cfg.Port = 3000
+
+	return cfg
 }
