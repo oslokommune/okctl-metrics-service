@@ -25,11 +25,6 @@ import (
 var specification []byte
 
 func main() {
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
-
-	logger.Info("Server started")
-
 	cfg, err := config.Generate()
 	if err != nil {
 		panic(err.Error())
@@ -39,6 +34,12 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetLevel(cfg.LogLevel)
+
+	logger.Info("Server started")
 
 	router := sw.New(cfg, logger, specification)
 
