@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/oslokommune/okctl-metrics-service/pkg/config"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -14,7 +16,7 @@ import (
 
 var counters = make(map[string]prometheus.Counter)
 
-func generateMetricHandler(cfg config.Config) gin.HandlerFunc {
+func generateMetricHandler(cfg config.Config, logger *logrus.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userAgent := c.GetHeader("User-Agent")
 
@@ -23,6 +25,8 @@ func generateMetricHandler(cfg config.Config) gin.HandlerFunc {
 			err = fmt.Errorf("validating agent %s: %w", userAgent, err)
 
 			c.JSON(http.StatusForbidden, core.ErrorResponse{Error: err.Error()})
+
+			logger.Warnf("invalid user agent '%s'. Legal agents are %s", userAgent, cfg.LegalAgents)
 
 			return
 		}
@@ -33,6 +37,8 @@ func generateMetricHandler(cfg config.Config) gin.HandlerFunc {
 		if err != nil {
 			c.Status(http.StatusBadRequest)
 
+			logger.Debug("binding request body: ", err.Error())
+
 			return
 		}
 
@@ -40,12 +46,16 @@ func generateMetricHandler(cfg config.Config) gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusBadRequest, core.ErrorResponse{Error: err.Error()})
 
+			logger.Debug("invalid event: ", err.Error())
+
 			return
 		}
 
 		err = registerMetric(userAgent, event)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, core.ErrorResponse{Error: err.Error()})
+			c.Status(http.StatusInternalServerError)
+
+			logger.Error("registering metric: ", err.Error())
 
 			return
 		}

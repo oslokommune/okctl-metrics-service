@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 func getString(getter stringValueGetter, key, defaultValue string) string {
@@ -40,4 +42,18 @@ func getStringList(getter stringValueGetter, key string, defaultValue []string) 
 	}
 
 	return strings.Split(result, ";")
+}
+
+func getLogLevel(getter stringValueGetter, key string, defaultLevel logrus.Level) (logrus.Level, error) {
+	rawValue := getter(key)
+	if rawValue == "" {
+		return defaultLevel, nil
+	}
+
+	level, err := logrus.ParseLevel(rawValue)
+	if err != nil {
+		return defaultLevel, fmt.Errorf("parsing log level: %w", err)
+	}
+
+	return level, nil
 }

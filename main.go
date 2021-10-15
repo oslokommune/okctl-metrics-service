@@ -13,19 +13,18 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"log"
 
 	"github.com/oslokommune/okctl-metrics-service/pkg/config"
 
 	sw "github.com/oslokommune/okctl-metrics-service/pkg/router"
+
+	"github.com/sirupsen/logrus"
 )
 
 //go:embed specification.yaml
 var specification []byte
 
 func main() {
-	log.Printf("Server started")
-
 	cfg, err := config.Generate()
 	if err != nil {
 		panic(err.Error())
@@ -36,7 +35,13 @@ func main() {
 		panic(err.Error())
 	}
 
-	router := sw.New(cfg, specification)
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetLevel(cfg.LogLevel)
 
-	log.Fatal(router.Run(fmt.Sprintf(":%d", cfg.Port)))
+	logger.Info("Server started")
+
+	router := sw.New(cfg, logger, specification)
+
+	logger.Fatal(router.Run(fmt.Sprintf(":%d", cfg.Port)))
 }

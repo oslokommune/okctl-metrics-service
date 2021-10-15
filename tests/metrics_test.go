@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics"
 
 	"github.com/stretchr/testify/assert"
@@ -94,7 +96,7 @@ func TestMetricsStatusCodes(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			serviceRouter := router.New(generateMockConfig(), []byte(""))
+			serviceRouter := router.New(generateMockConfig(), generateDemoLogger(), []byte(""))
 
 			recorder := httptest.NewRecorder()
 
@@ -222,7 +224,7 @@ func TestAtoB(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			server := httptest.NewServer(router.New(generateMockConfig(), []byte("")))
+			server := httptest.NewServer(router.New(generateMockConfig(), generateDemoLogger(), []byte("")))
 			defer server.Close()
 
 			originalValue := getCounterValue(t, server.URL, tc.expectHit.Key)
@@ -249,4 +251,12 @@ func generateMockConfig() config.Config {
 	cfg.Port = 3000
 
 	return cfg
+}
+
+func generateDemoLogger() *logrus.Logger {
+	logger := logrus.New()
+
+	logger.Out = io.Discard
+
+	return logger
 }

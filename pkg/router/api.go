@@ -5,32 +5,33 @@ import (
 	"github.com/oslokommune/okctl-metrics-service/pkg/config"
 	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/meta"
 	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics"
+	"github.com/sirupsen/logrus"
 )
 
 // New configures a new router for handling requests to the service
-func New(cfg config.Config, specification []byte) *gin.Engine {
+func New(cfg config.Config, logger *logrus.Logger, specification []byte) *gin.Engine {
 	router := gin.New()
 
-	configureLogging(router)
+	configureLogging(router, logger)
 
 	configureMetaRoutes(router, cfg)
 
-	configureV1Routes(router, cfg, specification)
+	configureV1Routes(router, cfg, logger, specification)
 
 	return router
 }
 
-func configureLogging(router *gin.Engine) {
+func configureLogging(router *gin.Engine, logger *logrus.Logger) {
 	router.Use(gin.Recovery())
 
-	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		SkipPaths: []string{
-			"/",
-			"/z/health",
-			"/z/ready",
-			"/z/prometheus",
-		},
-	}))
+	skipPaths := []string{
+		"/",
+		"/z/health",
+		"/z/ready",
+		"/z/prometheus",
+	}
+
+	router.Use(generateJSONLoggerMiddleware(logger, skipPaths))
 }
 
 func configureMetaRoutes(router *gin.Engine, cfg config.Config) {
@@ -40,12 +41,12 @@ func configureMetaRoutes(router *gin.Engine, cfg config.Config) {
 	router.GET("/z/prometheus", meta.GeneratePrometheusHandler())
 }
 
-func configureV1Routes(router *gin.Engine, cfg config.Config, specification []byte) {
+func configureV1Routes(router *gin.Engine, cfg config.Config, logger *logrus.Logger, specification []byte) {
 	v1Group := router.Group("/v1")
 
 	v1MetaGroup := v1Group.Group("/z")
 	attachRoutes(v1MetaGroup, meta.GetRoutes(specification))
 
 	v1MetricsGroup := v1Group.Group("/metrics")
-	attachRoutes(v1MetricsGroup, metrics.GetRoutes(cfg))
+	attachRoutes(v1MetricsGroup, metrics.GetRoutes(cfg, logger))
 }
