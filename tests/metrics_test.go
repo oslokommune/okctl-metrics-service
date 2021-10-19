@@ -216,6 +216,20 @@ func TestAtoB(t *testing.T) {
 				Value: 3,
 			},
 		},
+		{
+			name: "Should handle labels",
+			withEvents: []metrics.Event{
+				{
+					Category: metrics.CategoryCommandExecution,
+					Action:   metrics.ActionShowCredentials,
+					Label:    "start",
+				},
+			},
+			expectHit: hit{
+				Key:   "okctl_commandexecution_showcredentials_start",
+				Value: 1,
+			},
+		},
 	}
 
 	for _, tc := range testCases {
