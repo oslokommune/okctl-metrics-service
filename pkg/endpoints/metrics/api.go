@@ -27,11 +27,7 @@ func GetRoutes(cfg config.Config, logger *logrus.Logger) endpoints.Routes {
 // Validate ensures an Event contains the required and valid data
 func (receiver Event) Validate() error {
 	return validation.ValidateStruct(&receiver,
-		validation.Field(&receiver.Category, validation.Required, validation.In(
-			CategoryCluster, CategoryApplication,
-		)),
-		validation.Field(&receiver.Action, validation.Required, validation.In(
-			ActionScaffold, ActionApply, ActionDelete,
-		)),
+		validation.Field(&receiver.Category, validation.Required),
+		validation.Field(&receiver.Action, validation.Required),
 	)
 }
