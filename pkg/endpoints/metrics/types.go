@@ -3,9 +3,6 @@ package metrics
 // Event defines information necessary to process a metric event
 type Event struct {
 
-	// A UUID used to combine events
-	ID string `json:"id,omitempty"`
-
 	// A label used to categorize events
 	Category Category `json:"category"`
 
