@@ -49,7 +49,7 @@ func TestMetricsStatusCodes(t *testing.T) {
 				req, _ := http.NewRequest(
 					http.MethodPost,
 					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
-					bytes.NewBufferString(`{"category": "cluster", "action": "apply"}`),
+					bytes.NewBufferString(`{"category": "commandexecution", "action": "applycluster"}`),
 				)
 				req.Header.Add("User-Agent", "okctl")
 				req.Header.Add("Content-Type", "application/json")
@@ -186,12 +186,12 @@ func TestAtoB(t *testing.T) {
 			name: "Should add and bump metric with one hit",
 			withEvents: []metrics.Event{
 				{
-					Category: metrics.CategoryCluster,
-					Action:   metrics.ActionScaffold,
+					Category: metrics.CategoryCommandExecution,
+					Action:   metrics.ActionScaffoldCluster,
 				},
 			},
 			expectHit: hit{
-				Key:   "okctl_cluster_scaffold",
+				Key:   "okctl_commandexecution_scaffoldcluster",
 				Value: 1,
 			},
 		},
@@ -199,20 +199,20 @@ func TestAtoB(t *testing.T) {
 			name: "Should add and bump metric with multiple hits",
 			withEvents: []metrics.Event{
 				{
-					Category: metrics.CategoryCluster,
-					Action:   metrics.ActionScaffold,
+					Category: metrics.CategoryCommandExecution,
+					Action:   metrics.ActionScaffoldCluster,
 				},
 				{
-					Category: metrics.CategoryCluster,
-					Action:   metrics.ActionScaffold,
+					Category: metrics.CategoryCommandExecution,
+					Action:   metrics.ActionScaffoldCluster,
 				},
 				{
-					Category: metrics.CategoryCluster,
-					Action:   metrics.ActionScaffold,
+					Category: metrics.CategoryCommandExecution,
+					Action:   metrics.ActionScaffoldCluster,
 				},
 			},
 			expectHit: hit{
-				Key:   "okctl_cluster_scaffold",
+				Key:   "okctl_commandexecution_scaffoldcluster",
 				Value: 3,
 			},
 		},

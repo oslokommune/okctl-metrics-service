@@ -15,20 +15,18 @@ type (
 	Action   string
 )
 
-// Categories
-const (
-	// CategoryCluster represents metrics associated with cluster manipulation
-	CategoryCluster Category = "cluster"
-	// CategoryApplication represents metrics associated with application manipulation
-	CategoryApplication Category = "application"
+var categoryValidator = generateCategoryValidator(
+	CategoryCommandExecution,
 )
 
-// Actions
-const (
-	// ActionScaffold represents scaffolding a resource
-	ActionScaffold Action = "scaffold"
-	// ActionApply represents applying a resource
-	ActionApply Action = "apply"
-	// ActionDelete represents deleting a resource
-	ActionDelete Action = "delete"
+var actionValidator = generateActionValidator(
+	commandExecutionActions,
 )
+
+func (c Category) Validate() error {
+	return categoryValidator(c)
+}
+
+func (a Action) Validate() error {
+	return actionValidator(a)
+}
