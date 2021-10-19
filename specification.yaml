@@ -86,13 +86,9 @@ components:
   schemas:
     Event:
       example:
-        ID: 9cfb99f9-22d9-4a5b-bfd0-353fee86db50
         Category: cluster
         Action: create
       properties:
-        ID:
-          type: string
-          description: A UUID used to combine events
         Category:
           type: string
           description: A label used to categorize events
