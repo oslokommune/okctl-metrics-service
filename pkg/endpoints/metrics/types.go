@@ -8,6 +8,9 @@ type Event struct {
 
 	// A label used to identify the event type
 	Action Action `json:"action"`
+
+	// A label used to determine variations of an event
+	Label string `json:"label"`
 }
 
 type (
