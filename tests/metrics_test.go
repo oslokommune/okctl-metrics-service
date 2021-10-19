@@ -80,7 +80,37 @@ func TestMetricsStatusCodes(t *testing.T) {
 				req, _ := http.NewRequest(
 					http.MethodPost,
 					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
-					bytes.NewBufferString(`{"category": "cluster", "action": "applY"}`),
+					bytes.NewBufferString(`{"category": "commandexecution", "action": "applYcluster"}`),
+				)
+				req.Header.Add("User-Agent", "okctl")
+
+				return req
+			}(),
+			expectStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "Should return 400 upon illegal characters in label",
+
+			withRequest: func() *http.Request {
+				req, _ := http.NewRequest(
+					http.MethodPost,
+					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
+					bytes.NewBufferString(`{"category": "cluster", "action": "apply", "label": "nese_; DROP ALL TABLES;"}`),
+				)
+				req.Header.Add("User-Agent", "okctl")
+
+				return req
+			}(),
+			expectStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "Should return 400 upon illegal characters in label (less insane)",
+
+			withRequest: func() *http.Request {
+				req, _ := http.NewRequest(
+					http.MethodPost,
+					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
+					bytes.NewBufferString(`{"category": "cluster", "action": "apply", "label": "test%"}`),
 				)
 				req.Header.Add("User-Agent", "okctl")
 
