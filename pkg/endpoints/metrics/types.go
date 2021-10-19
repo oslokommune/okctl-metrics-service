@@ -17,3 +17,11 @@ type (
 	Category string
 	Action   string
 )
+
+func (c Category) String() string {
+	return string(c)
+}
+
+func (a Action) String() string {
+	return string(a)
+}
