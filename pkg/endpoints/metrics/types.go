@@ -17,19 +17,3 @@ type (
 	Category string
 	Action   string
 )
-
-var categoryValidator = generateCategoryValidator(
-	CategoryCommandExecution,
-)
-
-var actionValidator = generateActionValidator(
-	commandExecutionActions,
-)
-
-func (c Category) Validate() error {
-	return categoryValidator(c)
-}
-
-func (a Action) Validate() error {
-	return actionValidator(a)
-}
