@@ -254,11 +254,13 @@ func TestAtoB(t *testing.T) {
 				{
 					Category: metrics.CategoryCommandExecution,
 					Action:   metrics.ActionShowCredentials,
-					Label:    "start",
+					Labels: map[string]string{
+						"phase": "start",
+					},
 				},
 			},
 			expectHit: hit{
-				Key:   "okctl_commandexecution_showcredentials_start",
+				Key:   `okctl_commandexecution_showcredentials{phase="start"}`,
 				Value: 1,
 			},
 		},

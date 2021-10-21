@@ -88,7 +88,8 @@ components:
       example:
         Category: cluster
         Action: create
-        Label: start
+        Labels:
+          phase: start
       properties:
         Category:
           type: string
@@ -96,9 +97,9 @@ components:
         Action:
           type: string
           description: A label used to identify the event type
-        Label:
-          type: string
-          description: A label used to determine variations of an event
+        Labels:
+          type: object
+          description: Labels that annotate the event
     ServiceMeta:
       example:
         specification: https://metrics.kjoremiljo-prod.oslo.systems/z/specification

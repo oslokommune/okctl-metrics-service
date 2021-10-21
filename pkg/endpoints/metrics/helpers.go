@@ -2,6 +2,8 @@ package metrics
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 )
 
 func generateActionValidator(actionList ...[]Action) func(Action) error {
@@ -32,4 +34,19 @@ func generateCategoryValidator(categories ...Category) func(Category) error {
 
 		return fmt.Errorf("illegal category: %s", string(value))
 	}
+}
+
+func mapAsString(m map[string]string) string {
+	parts := make([]string, len(m))
+	index := 0
+
+	for key, value := range m {
+		parts[index] = key + value
+
+		index++
+	}
+
+	sort.Strings(parts)
+
+	return strings.Join(parts, "")
 }
