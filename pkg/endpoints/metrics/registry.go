@@ -64,3 +64,19 @@ func (m *MetricRegistry) addCounter(userAgent string, category Category, labels 
 
 	prometheus.MustRegister(m.counters[userAgent][category][action])
 }
+
+func (m *MetricRegistry) Reset() {
+	for userAgent := range m.counters {
+		for category := range m.counters[userAgent] {
+			for action := range m.counters[userAgent][category] {
+				prometheus.Unregister(m.counters[userAgent][category][action])
+
+				delete(m.counters[userAgent][category], action)
+			}
+
+			delete(m.counters[userAgent], category)
+		}
+
+		delete(m.counters, userAgent)
+	}
+}
