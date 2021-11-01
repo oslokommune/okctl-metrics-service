@@ -1,9 +1,9 @@
 package metrics
 
-const (
-	// CategoryCommandExecution represents the context of running commands
-	CategoryCommandExecution Category = "commandexecution"
+// CategoryCommandExecution represents the context of running commands
+const CategoryCommandExecution Category = "commandexecution"
 
+const (
 	// ActionScaffoldCluster represents running the command `okctl scaffold cluster`
 	ActionScaffoldCluster Action = "scaffoldcluster"
 	// ActionApplyCluster represents running the command `okctl apply cluster`
@@ -31,9 +31,21 @@ const (
 	ActionVersion Action = "version"
 )
 
-var commandExecutionActions = []Action{
-	ActionScaffoldCluster, ActionApplyCluster, ActionDeleteCluster,
-	ActionScaffoldApplication, ActionApplyApplication,
-	ActionForwardPostgres, ActionAttachPostgres,
-	ActionShowCredentials, ActionUpgrade, ActionVenv, ActionVersion,
+const (
+	LabelPhaseKey = "phase"
+	// LabelPhaseStart represents the start of a command
+	LabelPhaseStart = "start"
+	// LabelPhaseEnd represents the end of the command
+	LabelPhaseEnd = "end"
+)
+
+var commandExecutionDefinition = Definition{
+	Category: CategoryCommandExecution,
+	Actions: []Action{
+		ActionScaffoldCluster, ActionApplyCluster, ActionDeleteCluster,
+		ActionScaffoldApplication, ActionApplyApplication,
+		ActionForwardPostgres, ActionAttachPostgres,
+		ActionShowCredentials, ActionUpgrade, ActionVenv, ActionVersion,
+	},
+	Labels: []string{LabelPhaseKey},
 }
