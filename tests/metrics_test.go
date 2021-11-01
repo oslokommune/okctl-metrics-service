@@ -13,8 +13,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics"
@@ -104,8 +102,8 @@ func TestMetricsStatusCodes(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			prometheus.DefaultRegisterer = prometheus.NewRegistry()
-			serviceRouter := router.New(generateMockConfig(), generateDemoLogger(), []byte(""))
+			serviceRouter, teardownFn := router.New(generateMockConfig(), generateDemoLogger(), []byte(""))
+			defer teardownFn()
 
 			recorder := httptest.NewRecorder()
 
@@ -227,9 +225,8 @@ func TestAtoB(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			prometheus.DefaultRegisterer = nil
-
-			serviceRouter := router.New(generateMockConfig(), generateDemoLogger(), []byte(""))
+			serviceRouter, teardownFn := router.New(generateMockConfig(), generateDemoLogger(), []byte(""))
+			defer teardownFn()
 
 			originalValue := getCounterValue(t, serviceRouter, tc.expectHit.Key)
 

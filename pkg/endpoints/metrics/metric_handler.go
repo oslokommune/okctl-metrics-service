@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/oslokommune/okctl-metrics-service/pkg/config"
@@ -12,7 +14,7 @@ import (
 	"github.com/oslokommune/okctl-metrics-service/pkg/core"
 )
 
-func generateMetricHandler(cfg config.Config, logger *logrus.Logger) gin.HandlerFunc {
+func generateMetricHandler(cfg config.Config, logger *logrus.Logger) (gin.HandlerFunc, endpoints.TeardownFn) {
 	counters := NewMetricRegistry(cfg.LegalAgents)
 
 	counters.Add(commandExecutionDefinition)
@@ -61,5 +63,5 @@ func generateMetricHandler(cfg config.Config, logger *logrus.Logger) gin.Handler
 		}
 
 		c.Status(http.StatusCreated)
-	}
+	}, counters.Reset
 }

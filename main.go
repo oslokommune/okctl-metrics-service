@@ -41,7 +41,8 @@ func main() {
 
 	logger.Info("Server started")
 
-	router := sw.New(cfg, logger, specification)
+	router, teardownFn := sw.New(cfg, logger, specification)
+	defer teardownFn()
 
 	logger.Fatal(router.Run(fmt.Sprintf(":%d", cfg.Port)))
 }
