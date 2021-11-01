@@ -25,31 +25,12 @@ func (receiver Event) Validate() error {
 	)
 }
 
-var (
-	categoryValidator = generateCategoryValidator(
-		CategoryCommandExecution,
-	)
-	actionValidator = generateActionValidator(
-		commandExecutionActions,
-	)
-)
-
 func (c Category) Validate() error {
-	err := validation.Validate(c.String(), validation.Match(legalCharactersRe))
-	if err != nil {
-		return err
-	}
-
-	return categoryValidator(c)
+	return validation.Validate(c.String(), validation.Match(legalCharactersRe))
 }
 
 func (a Action) Validate() error {
-	err := validation.Validate(a.String(), validation.Match(legalCharactersRe))
-	if err != nil {
-		return err
-	}
-
-	return actionValidator(a)
+	return validation.Validate(a.String(), validation.Match(legalCharactersRe))
 }
 
 func validateLabels(m map[string]string) error {

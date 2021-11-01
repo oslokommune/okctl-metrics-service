@@ -8,15 +8,15 @@ import (
 
 	"github.com/oslokommune/okctl-metrics-service/pkg/config"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/gin-gonic/gin"
 	"github.com/oslokommune/okctl-metrics-service/pkg/core"
 )
 
-var counters = make(map[string]prometheus.Counter)
-
 func generateMetricHandler(cfg config.Config, logger *logrus.Logger) gin.HandlerFunc {
+	counters := NewMetricRegistry(cfg.LegalAgents)
+
+	counters.Add(commandExecutionDefinition)
+
 	return func(c *gin.Context) {
 		userAgent := c.GetHeader("User-Agent")
 
@@ -46,52 +46,20 @@ func generateMetricHandler(cfg config.Config, logger *logrus.Logger) gin.Handler
 		if err != nil {
 			c.JSON(http.StatusBadRequest, core.ErrorResponse{Error: err.Error()})
 
-			logger.Debug("invalid event: ", err.Error())
+			logger.Debug("validating event: ", err.Error())
 
 			return
 		}
 
-		err = registerMetric(userAgent, event)
+		err = counters.Increment(userAgent, event)
 		if err != nil {
-			c.Status(http.StatusInternalServerError)
+			c.JSON(http.StatusBadRequest, core.ErrorResponse{Error: err.Error()})
 
-			logger.Error("registering metric: ", err.Error())
+			logger.Debug("incrementing metric: ", err.Error())
 
 			return
 		}
 
 		c.Status(http.StatusCreated)
 	}
-}
-
-func registerMetric(prefix string, event Event) error {
-	key := event.Hash()
-
-	if _, ok := counters[key]; !ok {
-		counters[key] = prometheus.NewCounter(prometheus.CounterOpts{
-			Namespace:   prefix,
-			Subsystem:   event.Category.String(),
-			Name:        event.Action.String(),
-			ConstLabels: event.Labels,
-		})
-
-		err := prometheus.Register(counters[key])
-		if err != nil {
-			return fmt.Errorf("registering Prometheus counter: %w", err)
-		}
-	}
-
-	counters[key].Inc()
-
-	return nil
-}
-
-func validateAgent(legalAgents []string, agent string) error {
-	for _, legalAgent := range legalAgents {
-		if agent == legalAgent {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("invalid agent")
 }

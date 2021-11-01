@@ -25,3 +25,9 @@ func (c Category) String() string {
 func (a Action) String() string {
 	return string(a)
 }
+
+type Definition struct {
+	Category Category
+	Actions  []Action
+	Labels   []string
+}

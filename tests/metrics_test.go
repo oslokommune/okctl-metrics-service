@@ -12,6 +12,9 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics"
@@ -26,98 +29,73 @@ func TestMetricsStatusCodes(t *testing.T) {
 	testCases := []struct {
 		name string
 
-		withRequest      *http.Request
+		withEvent        metrics.Event
+		withUserAgent    string
 		expectStatusCode int
 	}{
 		{
 			name: "Should return 403 upon erroneous user agent",
-
-			withRequest: func() *http.Request {
-				req, _ := http.NewRequest(
-					http.MethodPost,
-					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
-					bytes.NewBufferString("{}"),
-				)
-				req.Header.Add("User-Agent", "chromium")
-
-				return req
-			}(),
+			withEvent: metrics.Event{
+				Category: metrics.CategoryCommandExecution,
+				Action:   metrics.ActionVenv,
+				Labels: map[string]string{
+					metrics.LabelPhaseKey: metrics.LabelPhaseStart,
+				},
+			},
+			withUserAgent:    "chromium",
 			expectStatusCode: http.StatusForbidden,
 		},
 		{
 			name: "Should return 201 upon expected request",
-
-			withRequest: func() *http.Request {
-				req, _ := http.NewRequest(
-					http.MethodPost,
-					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
-					bytes.NewBufferString(`{"category": "commandexecution", "action": "applycluster"}`),
-				)
-				req.Header.Add("User-Agent", "okctl")
-				req.Header.Add("Content-Type", "application/json")
-
-				return req
-			}(),
+			withEvent: metrics.Event{
+				Category: metrics.CategoryCommandExecution,
+				Action:   metrics.ActionApplyCluster,
+				Labels: map[string]string{
+					metrics.LabelPhaseKey: metrics.LabelPhaseStart,
+				},
+			},
+			withUserAgent:    mockLegalUserAgent,
 			expectStatusCode: http.StatusCreated,
 		},
 		{
 			name: "Should return 400 upon unexpected category",
 
-			withRequest: func() *http.Request {
-				req, _ := http.NewRequest(
-					http.MethodPost,
-					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
-					bytes.NewBufferString(`{"category": "automation", "action": "apply"}`),
-				)
-				req.Header.Add("User-Agent", "okctl")
-
-				return req
-			}(),
+			withEvent: metrics.Event{
+				Category: "automation",
+				Action:   metrics.ActionVenv,
+				Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
+			},
+			withUserAgent:    mockLegalUserAgent,
 			expectStatusCode: http.StatusBadRequest,
 		},
 		{
 			name: "Should return 400 upon unexpected action",
-
-			withRequest: func() *http.Request {
-				req, _ := http.NewRequest(
-					http.MethodPost,
-					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
-					bytes.NewBufferString(`{"category": "commandexecution", "action": "applYcluster"}`),
-				)
-				req.Header.Add("User-Agent", "okctl")
-
-				return req
-			}(),
+			withEvent: metrics.Event{
+				Category: metrics.CategoryCommandExecution,
+				Action:   "applYcluster",
+				Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
+			},
+			withUserAgent:    mockLegalUserAgent,
 			expectStatusCode: http.StatusBadRequest,
 		},
 		{
 			name: "Should return 400 upon illegal characters in label",
-
-			withRequest: func() *http.Request {
-				req, _ := http.NewRequest(
-					http.MethodPost,
-					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
-					bytes.NewBufferString(`{"category": "cluster", "action": "apply", "label": "nese_; DROP ALL TABLES;"}`),
-				)
-				req.Header.Add("User-Agent", "okctl")
-
-				return req
-			}(),
+			withEvent: metrics.Event{
+				Category: metrics.CategoryCommandExecution,
+				Action:   metrics.ActionApplyCluster,
+				Labels:   map[string]string{metrics.LabelPhaseKey: "nese_; DROP ALL TABLES;"},
+			},
+			withUserAgent:    mockLegalUserAgent,
 			expectStatusCode: http.StatusBadRequest,
 		},
 		{
 			name: "Should return 400 upon illegal characters in label (less insane)",
-
-			withRequest: func() *http.Request {
-				req, _ := http.NewRequest(
-					http.MethodPost,
-					fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
-					bytes.NewBufferString(`{"category": "cluster", "action": "apply", "label": "test%"}`),
-				)
-				req.Header.Add("User-Agent", "okctl")
-
-				return req
-			}(),
+			withEvent: metrics.Event{
+				Category: metrics.CategoryCommandExecution,
+				Action:   metrics.ActionApplyCluster,
+				Labels:   map[string]string{metrics.LabelPhaseKey: "test%"},
+			},
+			withUserAgent:    mockLegalUserAgent,
 			expectStatusCode: http.StatusBadRequest,
 		},
 	}
@@ -126,11 +104,25 @@ func TestMetricsStatusCodes(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
+			prometheus.DefaultRegisterer = prometheus.NewRegistry()
 			serviceRouter := router.New(generateMockConfig(), generateDemoLogger(), []byte(""))
 
 			recorder := httptest.NewRecorder()
 
-			serviceRouter.ServeHTTP(recorder, tc.withRequest)
+			payload, err := json.Marshal(tc.withEvent)
+			assert.NoError(t, err)
+
+			req, err := http.NewRequest(
+				http.MethodPost,
+				fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
+				bytes.NewReader(payload),
+			)
+			assert.NoError(t, err)
+
+			req.Header.Add("User-Agent", tc.withUserAgent)
+			req.Header.Add("Content-Type", "application/json")
+
+			serviceRouter.ServeHTTP(recorder, req)
 
 			assert.Equal(t, tc.expectStatusCode, recorder.Code)
 		})
@@ -142,52 +134,15 @@ type hit struct {
 	Value int
 }
 
-func publishEvent(t *testing.T, baseURL string, event metrics.Event) {
-	payload, err := json.Marshal(event)
+func getCounterValue(t *testing.T, server *gin.Engine, key string) int {
+	recorder := httptest.NewRecorder()
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/z/prometheus", mockBaseURL), nil)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest(
-		http.MethodPost,
-		fmt.Sprintf("%s/v1/metrics/events", baseURL),
-		bytes.NewReader(payload),
-	)
+	server.ServeHTTP(recorder, req)
 
-	req.Header.Add("User-Agent", "okctl")
-	req.Header.Add("Content-Type", "application/json")
-
-	req.RequestURI = ""
-
-	client := http.Client{}
-
-	res, err := client.Do(req)
-	assert.NoError(t, err)
-
-	defer func() {
-		_ = res.Body.Close()
-	}()
-
-	assert.Equal(t, http.StatusCreated, res.StatusCode)
-}
-
-func getCounterValue(t *testing.T, baseURL string, key string) int {
-	req := httptest.NewRequest(
-		http.MethodGet,
-		fmt.Sprintf("%s/z/prometheus", baseURL),
-		nil,
-	)
-
-	req.RequestURI = ""
-
-	client := http.Client{}
-
-	res, err := client.Do(req)
-	assert.NoError(t, err)
-
-	defer func() {
-		_ = res.Body.Close()
-	}()
-
-	rawBody, err := io.ReadAll(res.Body)
+	rawBody, err := io.ReadAll(recorder.Body)
 	assert.NoError(t, err)
 
 	re, err := regexp.Compile(fmt.Sprintf("%s (?P<counter>\\d+)", key))
@@ -220,10 +175,11 @@ func TestAtoB(t *testing.T) {
 				{
 					Category: metrics.CategoryCommandExecution,
 					Action:   metrics.ActionScaffoldCluster,
+					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
 				},
 			},
 			expectHit: hit{
-				Key:   "okctl_commandexecution_scaffoldcluster",
+				Key:   `okctl_commandexecution_scaffoldcluster{phase="start"}`,
 				Value: 1,
 			},
 		},
@@ -233,18 +189,21 @@ func TestAtoB(t *testing.T) {
 				{
 					Category: metrics.CategoryCommandExecution,
 					Action:   metrics.ActionScaffoldCluster,
+					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
 				},
 				{
 					Category: metrics.CategoryCommandExecution,
 					Action:   metrics.ActionScaffoldCluster,
+					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
 				},
 				{
 					Category: metrics.CategoryCommandExecution,
 					Action:   metrics.ActionScaffoldCluster,
+					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
 				},
 			},
 			expectHit: hit{
-				Key:   "okctl_commandexecution_scaffoldcluster",
+				Key:   `okctl_commandexecution_scaffoldcluster{phase="start"}`,
 				Value: 3,
 			},
 		},
@@ -254,9 +213,7 @@ func TestAtoB(t *testing.T) {
 				{
 					Category: metrics.CategoryCommandExecution,
 					Action:   metrics.ActionShowCredentials,
-					Labels: map[string]string{
-						"phase": "start",
-					},
+					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
 				},
 			},
 			expectHit: hit{
@@ -270,16 +227,17 @@ func TestAtoB(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			server := httptest.NewServer(router.New(generateMockConfig(), generateDemoLogger(), []byte("")))
-			defer server.Close()
+			prometheus.DefaultRegisterer = nil
 
-			originalValue := getCounterValue(t, server.URL, tc.expectHit.Key)
+			serviceRouter := router.New(generateMockConfig(), generateDemoLogger(), []byte(""))
+
+			originalValue := getCounterValue(t, serviceRouter, tc.expectHit.Key)
 
 			for _, event := range tc.withEvents {
-				publishEvent(t, server.URL, event)
+				publishEvent(t, serviceRouter, mockLegalUserAgent, event)
 			}
 
-			newValue := getCounterValue(t, server.URL, tc.expectHit.Key)
+			newValue := getCounterValue(t, serviceRouter, tc.expectHit.Key)
 
 			diff := math.Abs(float64(newValue - originalValue))
 
@@ -288,7 +246,31 @@ func TestAtoB(t *testing.T) {
 	}
 }
 
-const mockBaseURL = "http://localhost:3000"
+const (
+	mockBaseURL        = "http://localhost:3000"
+	mockLegalUserAgent = "okctl"
+)
+
+func publishEvent(t *testing.T, serviceRouter *gin.Engine, userAgent string, event metrics.Event) {
+	payload, err := json.Marshal(event)
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest(
+		http.MethodPost,
+		fmt.Sprintf("%s/v1/metrics/events", mockBaseURL),
+		bytes.NewReader(payload),
+	)
+	assert.NoError(t, err)
+
+	req.Header.Add("User-Agent", userAgent)
+	req.Header.Add("Content-Type", "application/json")
+
+	recorder := httptest.NewRecorder()
+
+	serviceRouter.ServeHTTP(recorder, req)
+
+	assert.Equal(t, http.StatusCreated, recorder.Code)
+}
 
 func generateMockConfig() config.Config {
 	cfg, _ := config.Generate()
