@@ -1,5 +1,7 @@
 package metrics
 
+const defaultMetricNamespace = "okctl"
+
 // Event defines information necessary to process a metric event
 type Event struct {
 

@@ -7,15 +7,19 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+const userAgentKey = "useragent"
+
 type MetricRegistry struct {
-	counters map[string]map[Category]map[Action]*prometheus.CounterVec
+	counters map[Category]map[Action]*prometheus.CounterVec
 }
 
 func (m *MetricRegistry) Increment(userAgent string, event Event) error {
-	counter, ok := m.counters[userAgent][event.Category][event.Action]
+	counter, ok := m.counters[event.Category][event.Action]
 	if !ok {
 		return errors.New("metric not found")
 	}
+
+	event.Labels[userAgentKey] = userAgent
 
 	metric, err := counter.GetMetricWith(event.Labels)
 	if err != nil {
@@ -28,55 +32,41 @@ func (m *MetricRegistry) Increment(userAgent string, event Event) error {
 }
 
 func (m *MetricRegistry) Add(d Definition) {
-	for agent := range m.counters {
-		m.addCounters(agent, d.Category, d.Labels, d.Actions...)
+	for _, action := range d.Actions {
+		m.addCounter(d.Category, d.Labels, action)
 	}
 }
 
-func NewMetricRegistry(legalUserAgents []string) *MetricRegistry {
+func NewMetricRegistry() *MetricRegistry {
 	m := &MetricRegistry{
-		counters: make(map[string]map[Category]map[Action]*prometheus.CounterVec),
-	}
-
-	for _, agent := range legalUserAgents {
-		m.counters[agent] = make(map[Category]map[Action]*prometheus.CounterVec)
+		counters: make(map[Category]map[Action]*prometheus.CounterVec),
 	}
 
 	return m
 }
 
-func (m *MetricRegistry) addCounters(userAgent string, category Category, labels []string, actions ...Action) {
-	for _, action := range actions {
-		m.addCounter(userAgent, category, labels, action)
-	}
-}
-
-func (m *MetricRegistry) addCounter(userAgent string, category Category, labels []string, action Action) {
-	if _, ok := m.counters[userAgent][category]; !ok {
-		m.counters[userAgent][category] = make(map[Action]*prometheus.CounterVec)
+func (m *MetricRegistry) addCounter(category Category, labels []string, action Action) {
+	if _, ok := m.counters[category]; !ok {
+		m.counters[category] = make(map[Action]*prometheus.CounterVec)
 	}
 
-	m.counters[userAgent][category][action] = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: userAgent,
+	m.counters[category][action] = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: defaultMetricNamespace,
 		Subsystem: category.String(),
 		Name:      action.String(),
-	}, labels)
+	}, append(labels, userAgentKey))
 
-	prometheus.MustRegister(m.counters[userAgent][category][action])
+	prometheus.MustRegister(m.counters[category][action])
 }
 
 func (m *MetricRegistry) Reset() {
-	for userAgent := range m.counters {
-		for category := range m.counters[userAgent] {
-			for action := range m.counters[userAgent][category] {
-				prometheus.Unregister(m.counters[userAgent][category][action])
+	for category := range m.counters {
+		for action := range m.counters[category] {
+			prometheus.Unregister(m.counters[category][action])
 
-				delete(m.counters[userAgent][category], action)
-			}
-
-			delete(m.counters[userAgent], category)
+			delete(m.counters[category], action)
 		}
 
-		delete(m.counters, userAgent)
+		delete(m.counters, category)
 	}
 }

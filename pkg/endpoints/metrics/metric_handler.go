@@ -15,7 +15,7 @@ import (
 )
 
 func generateMetricHandler(cfg config.Config, logger *logrus.Logger) (gin.HandlerFunc, endpoints.TeardownFn) {
-	counters := NewMetricRegistry(cfg.LegalAgents)
+	counters := NewMetricRegistry()
 
 	counters.Add(commandExecutionDefinition)
 
