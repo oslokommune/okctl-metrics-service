@@ -177,7 +177,7 @@ func TestAtoB(t *testing.T) {
 				},
 			},
 			expectHit: hit{
-				Key:   `okctl_commandexecution_scaffoldcluster{phase="start"}`,
+				Key:   `okctl_commandexecution_scaffoldcluster{phase="start",useragent="okctl"}`,
 				Value: 1,
 			},
 		},
@@ -201,7 +201,7 @@ func TestAtoB(t *testing.T) {
 				},
 			},
 			expectHit: hit{
-				Key:   `okctl_commandexecution_scaffoldcluster{phase="start"}`,
+				Key:   `okctl_commandexecution_scaffoldcluster{phase="start",useragent="okctl"}`,
 				Value: 3,
 			},
 		},
@@ -215,7 +215,7 @@ func TestAtoB(t *testing.T) {
 				},
 			},
 			expectHit: hit{
-				Key:   `okctl_commandexecution_showcredentials{phase="start"}`,
+				Key:   `okctl_commandexecution_showcredentials{phase="start",useragent="okctl"}`,
 				Value: 1,
 			},
 		},
