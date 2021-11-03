@@ -14,6 +14,9 @@ See [specification.yaml](specification.yaml) for the API specification.
 {
   "category": "my-category",
   "action": "my-action"
+  "labels": {
+    "key": "value"
+  }
 }
 ```
 
