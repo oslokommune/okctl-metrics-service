@@ -3,6 +3,9 @@ package metrics
 // CategoryCommandExecution represents the context of running commands
 const CategoryCommandExecution Category = "commandexecution"
 
+// CategoryInstallation represents the context of installing okctl
+const CategoryInstallation Category = "installation"
+
 const (
 	// ActionScaffoldCluster represents running the command `okctl scaffold cluster`
 	ActionScaffoldCluster Action = "scaffoldcluster"
@@ -29,9 +32,15 @@ const (
 	ActionVenv Action = "venvcluster"
 	// ActionVersion represents running the command `okctl version`
 	ActionVersion Action = "version"
+
+	// ActionInstall represents installing okctl
+	ActionInstall Action = "install"
+	// ActionBrewUninstall represents uninstalling okctl from brew
+	ActionBrewUninstall = "brewuninstall"
 )
 
 const (
+	// LabelPhaseKey is the key for phase label
 	LabelPhaseKey = "phase"
 	// LabelPhaseStart represents the start of a command
 	LabelPhaseStart = "start"
@@ -46,6 +55,14 @@ var commandExecutionDefinition = Definition{
 		ActionScaffoldApplication, ActionApplyApplication,
 		ActionForwardPostgres, ActionAttachPostgres,
 		ActionShowCredentials, ActionUpgrade, ActionVenv, ActionVersion,
+	},
+	Labels: []string{LabelPhaseKey},
+}
+
+var installationDefinition = Definition{
+	Category: CategoryInstallation,
+	Actions: []Action{
+		ActionInstall, ActionBrewUninstall,
 	},
 	Labels: []string{LabelPhaseKey},
 }
