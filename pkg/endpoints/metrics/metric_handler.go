@@ -19,6 +19,7 @@ func generateMetricHandler(cfg config.Config, logger *logrus.Logger) (gin.Handle
 
 	counters.Add(commandExecutionDefinition)
 	counters.Add(installationDefinition)
+	counters.Add(brewOkctlInstallationDefinition)
 
 	return func(c *gin.Context) {
 		userAgent := c.GetHeader("User-Agent")
