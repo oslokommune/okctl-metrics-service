@@ -28,6 +28,7 @@ func (a Action) String() string {
 	return string(a)
 }
 
+// Definition represents the definition of a metric
 type Definition struct {
 	Category Category
 	Actions  []Action

@@ -32,6 +32,7 @@ const (
 )
 
 const (
+	// LabelPhaseKey is the key for phase label
 	LabelPhaseKey = "phase"
 	// LabelPhaseStart represents the start of a command
 	LabelPhaseStart = "start"
