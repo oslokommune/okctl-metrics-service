@@ -19,6 +19,10 @@ func (m *MetricRegistry) Increment(userAgent string, event Event) error {
 		return errors.New("metric not found")
 	}
 
+	if event.Labels == nil {
+		event.Labels = map[string]string{}
+	}
+
 	event.Labels[userAgentKey] = userAgent
 
 	metric, err := counter.GetMetricWith(event.Labels)
