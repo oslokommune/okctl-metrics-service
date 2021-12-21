@@ -29,6 +29,15 @@ const (
 	ActionVenv Action = "venvcluster"
 	// ActionVersion represents running the command `okctl version`
 	ActionVersion Action = "version"
+
+	// ActionMaintenanceStateAcquireLock represents running the command `okctl maintenance state-acquire-lock
+	ActionMaintenanceStateAcquireLock Action = "stateacquirelock"
+	// ActionMaintenanceStateReleaseLock represents running the command `okctl maintenance state-release-lock
+	ActionMaintenanceStateReleaseLock Action = "statereleaselock"
+	// ActionMaintenanceStateDownload represents running the command `okctl maintenance state-download
+	ActionMaintenanceStateDownload Action = "statedownload"
+	// ActionMaintenanceStateUpload represents running the command `okctl maintenance state-upload
+	ActionMaintenanceStateUpload Action = "stateupload"
 )
 
 const (
@@ -47,6 +56,8 @@ var commandExecutionDefinition = Definition{
 		ActionScaffoldApplication, ActionApplyApplication,
 		ActionForwardPostgres, ActionAttachPostgres,
 		ActionShowCredentials, ActionUpgrade, ActionVenv, ActionVersion,
+		ActionMaintenanceStateAcquireLock, ActionMaintenanceStateReleaseLock,
+		ActionMaintenanceStateDownload, ActionMaintenanceStateUpload,
 	},
 	Labels: []string{LabelPhaseKey},
 }
