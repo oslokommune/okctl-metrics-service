@@ -3,6 +3,8 @@ package metrics
 import (
 	"testing"
 
+	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics/types"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -10,7 +12,7 @@ func TestIncrementingMetric(t *testing.T) {
 	testCases := []struct {
 		name string
 
-		withDefinition Definition
+		withDefinition types.Definition
 		withEvent      Event
 
 		expectErr string
@@ -18,9 +20,9 @@ func TestIncrementingMetric(t *testing.T) {
 		{
 			name: "Should accept events with labels",
 
-			withDefinition: Definition{
+			withDefinition: types.Definition{
 				Category: "testcategory1",
-				Actions:  []Action{"testaction1"},
+				Actions:  []types.Action{"testaction1"},
 				Labels:   []string{"a"},
 			},
 			withEvent: Event{
@@ -34,9 +36,9 @@ func TestIncrementingMetric(t *testing.T) {
 		{
 			name: "Should accept events without labels",
 
-			withDefinition: Definition{
+			withDefinition: types.Definition{
 				Category: "testcategory2",
-				Actions:  []Action{"testaction2"},
+				Actions:  []types.Action{"testaction2"},
 				Labels:   nil,
 			},
 			withEvent: Event{
