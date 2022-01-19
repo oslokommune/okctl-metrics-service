@@ -17,6 +17,8 @@ const (
 	ActionScaffoldApplication types.Action = "scaffoldapplication"
 	// ActionApplyApplication represents running the command `okctl apply application`
 	ActionApplyApplication types.Action = "applyapplication"
+	// ActionDeleteApplication represents running the command `okctl delete application`
+	ActionDeleteApplication types.Action = "deleteapplication"
 
 	// ActionForwardPostgres represents running the command `okctl forward postgres`
 	ActionForwardPostgres types.Action = "forwardpostgres"
@@ -55,7 +57,7 @@ var Definition = types.Definition{
 	Category: Category,
 	Actions: []types.Action{
 		ActionScaffoldCluster, ActionApplyCluster, ActionDeleteCluster,
-		ActionScaffoldApplication, ActionApplyApplication,
+		ActionScaffoldApplication, ActionApplyApplication, ActionDeleteApplication,
 		ActionForwardPostgres, ActionAttachPostgres,
 		ActionShowCredentials, ActionUpgrade, ActionVenv, ActionVersion,
 		ActionMaintenanceStateAcquireLock, ActionMaintenanceStateReleaseLock,
