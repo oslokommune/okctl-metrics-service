@@ -4,13 +4,15 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics/types"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 const userAgentKey = "useragent"
 
 type MetricRegistry struct {
-	counters map[Category]map[Action]*prometheus.CounterVec
+	counters map[types.Category]map[types.Action]*prometheus.CounterVec
 }
 
 func (m *MetricRegistry) Increment(userAgent string, event Event) error {
@@ -35,7 +37,7 @@ func (m *MetricRegistry) Increment(userAgent string, event Event) error {
 	return nil
 }
 
-func (m *MetricRegistry) Add(d Definition) {
+func (m *MetricRegistry) Add(d types.Definition) {
 	for _, action := range d.Actions {
 		m.addCounter(d.Category, d.Labels, action)
 	}
@@ -43,15 +45,15 @@ func (m *MetricRegistry) Add(d Definition) {
 
 func NewMetricRegistry() *MetricRegistry {
 	m := &MetricRegistry{
-		counters: make(map[Category]map[Action]*prometheus.CounterVec),
+		counters: make(map[types.Category]map[types.Action]*prometheus.CounterVec),
 	}
 
 	return m
 }
 
-func (m *MetricRegistry) addCounter(category Category, labels []string, action Action) {
+func (m *MetricRegistry) addCounter(category types.Category, labels []string, action types.Action) {
 	if _, ok := m.counters[category]; !ok {
-		m.counters[category] = make(map[Action]*prometheus.CounterVec)
+		m.counters[category] = make(map[types.Action]*prometheus.CounterVec)
 	}
 
 	m.counters[category][action] = prometheus.NewCounterVec(prometheus.CounterOpts{

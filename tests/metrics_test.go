@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics/types/commandexecution"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
@@ -34,10 +36,10 @@ func TestMetricsStatusCodes(t *testing.T) {
 		{
 			name: "Should return 403 upon erroneous user agent",
 			withEvent: metrics.Event{
-				Category: metrics.CategoryCommandExecution,
-				Action:   metrics.ActionVenv,
+				Category: commandexecution.Category,
+				Action:   commandexecution.ActionVenv,
 				Labels: map[string]string{
-					metrics.LabelPhaseKey: metrics.LabelPhaseStart,
+					commandexecution.LabelPhaseKey: commandexecution.LabelPhaseStart,
 				},
 			},
 			withUserAgent:    "chromium",
@@ -46,10 +48,10 @@ func TestMetricsStatusCodes(t *testing.T) {
 		{
 			name: "Should return 201 upon expected request",
 			withEvent: metrics.Event{
-				Category: metrics.CategoryCommandExecution,
-				Action:   metrics.ActionApplyCluster,
+				Category: commandexecution.Category,
+				Action:   commandexecution.ActionApplyCluster,
 				Labels: map[string]string{
-					metrics.LabelPhaseKey: metrics.LabelPhaseStart,
+					commandexecution.LabelPhaseKey: commandexecution.LabelPhaseStart,
 				},
 			},
 			withUserAgent:    mockLegalUserAgent,
@@ -60,8 +62,8 @@ func TestMetricsStatusCodes(t *testing.T) {
 
 			withEvent: metrics.Event{
 				Category: "automation",
-				Action:   metrics.ActionVenv,
-				Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
+				Action:   commandexecution.ActionVenv,
+				Labels:   map[string]string{commandexecution.LabelPhaseKey: commandexecution.LabelPhaseStart},
 			},
 			withUserAgent:    mockLegalUserAgent,
 			expectStatusCode: http.StatusBadRequest,
@@ -69,9 +71,9 @@ func TestMetricsStatusCodes(t *testing.T) {
 		{
 			name: "Should return 400 upon unexpected action",
 			withEvent: metrics.Event{
-				Category: metrics.CategoryCommandExecution,
+				Category: commandexecution.Category,
 				Action:   "applYcluster",
-				Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
+				Labels:   map[string]string{commandexecution.LabelPhaseKey: commandexecution.LabelPhaseStart},
 			},
 			withUserAgent:    mockLegalUserAgent,
 			expectStatusCode: http.StatusBadRequest,
@@ -79,9 +81,9 @@ func TestMetricsStatusCodes(t *testing.T) {
 		{
 			name: "Should return 400 upon illegal characters in label",
 			withEvent: metrics.Event{
-				Category: metrics.CategoryCommandExecution,
-				Action:   metrics.ActionApplyCluster,
-				Labels:   map[string]string{metrics.LabelPhaseKey: "nese_; DROP ALL TABLES;"},
+				Category: commandexecution.Category,
+				Action:   commandexecution.ActionApplyCluster,
+				Labels:   map[string]string{commandexecution.LabelPhaseKey: "nese_; DROP ALL TABLES;"},
 			},
 			withUserAgent:    mockLegalUserAgent,
 			expectStatusCode: http.StatusBadRequest,
@@ -89,9 +91,9 @@ func TestMetricsStatusCodes(t *testing.T) {
 		{
 			name: "Should return 400 upon illegal characters in label (less insane)",
 			withEvent: metrics.Event{
-				Category: metrics.CategoryCommandExecution,
-				Action:   metrics.ActionApplyCluster,
-				Labels:   map[string]string{metrics.LabelPhaseKey: "test%"},
+				Category: commandexecution.Category,
+				Action:   commandexecution.ActionApplyCluster,
+				Labels:   map[string]string{commandexecution.LabelPhaseKey: "test%"},
 			},
 			withUserAgent:    mockLegalUserAgent,
 			expectStatusCode: http.StatusBadRequest,
@@ -171,9 +173,9 @@ func TestAtoB(t *testing.T) {
 			name: "Should add and bump metric with one hit",
 			withEvents: []metrics.Event{
 				{
-					Category: metrics.CategoryCommandExecution,
-					Action:   metrics.ActionScaffoldCluster,
-					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
+					Category: commandexecution.Category,
+					Action:   commandexecution.ActionScaffoldCluster,
+					Labels:   map[string]string{commandexecution.LabelPhaseKey: commandexecution.LabelPhaseStart},
 				},
 			},
 			expectHit: hit{
@@ -185,19 +187,19 @@ func TestAtoB(t *testing.T) {
 			name: "Should add and bump metric with multiple hits",
 			withEvents: []metrics.Event{
 				{
-					Category: metrics.CategoryCommandExecution,
-					Action:   metrics.ActionScaffoldCluster,
-					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
+					Category: commandexecution.Category,
+					Action:   commandexecution.ActionScaffoldCluster,
+					Labels:   map[string]string{commandexecution.LabelPhaseKey: commandexecution.LabelPhaseStart},
 				},
 				{
-					Category: metrics.CategoryCommandExecution,
-					Action:   metrics.ActionScaffoldCluster,
-					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
+					Category: commandexecution.Category,
+					Action:   commandexecution.ActionScaffoldCluster,
+					Labels:   map[string]string{commandexecution.LabelPhaseKey: commandexecution.LabelPhaseStart},
 				},
 				{
-					Category: metrics.CategoryCommandExecution,
-					Action:   metrics.ActionScaffoldCluster,
-					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
+					Category: commandexecution.Category,
+					Action:   commandexecution.ActionScaffoldCluster,
+					Labels:   map[string]string{commandexecution.LabelPhaseKey: commandexecution.LabelPhaseStart},
 				},
 			},
 			expectHit: hit{
@@ -209,9 +211,9 @@ func TestAtoB(t *testing.T) {
 			name: "Should handle labels",
 			withEvents: []metrics.Event{
 				{
-					Category: metrics.CategoryCommandExecution,
-					Action:   metrics.ActionShowCredentials,
-					Labels:   map[string]string{metrics.LabelPhaseKey: metrics.LabelPhaseStart},
+					Category: commandexecution.Category,
+					Action:   commandexecution.ActionShowCredentials,
+					Labels:   map[string]string{commandexecution.LabelPhaseKey: commandexecution.LabelPhaseStart},
 				},
 			},
 			expectHit: hit{

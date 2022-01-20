@@ -25,14 +25,6 @@ func (receiver Event) Validate() error {
 	)
 }
 
-func (c Category) Validate() error {
-	return validation.Validate(c.String(), validation.Match(legalCharactersRe))
-}
-
-func (a Action) Validate() error {
-	return validation.Validate(a.String(), validation.Match(legalCharactersRe))
-}
-
 func validateLabels(m map[string]string) error {
 	if len(m) == 0 {
 		return nil

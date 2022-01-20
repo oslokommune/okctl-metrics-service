@@ -37,9 +37,7 @@ func getStringList(getter stringValueGetter, key string, defaultValue []string) 
 		return defaultValue
 	}
 
-	if strings.HasSuffix(result, ";") {
-		result = result[:len(result)-1]
-	}
+	result = strings.TrimSuffix(result, ";")
 
 	return strings.Split(result, ";")
 }

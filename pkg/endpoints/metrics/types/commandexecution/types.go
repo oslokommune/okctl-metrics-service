@@ -1,43 +1,47 @@
-package metrics
+package commandexecution
 
-// CategoryCommandExecution represents the context of running commands
-const CategoryCommandExecution Category = "commandexecution"
+import "github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics/types"
+
+// Category represents the context of running commands
+const Category types.Category = "commandexecution"
 
 const (
 	// ActionScaffoldCluster represents running the command `okctl scaffold cluster`
-	ActionScaffoldCluster Action = "scaffoldcluster"
+	ActionScaffoldCluster types.Action = "scaffoldcluster"
 	// ActionApplyCluster represents running the command `okctl apply cluster`
-	ActionApplyCluster Action = "applycluster"
+	ActionApplyCluster types.Action = "applycluster"
 	// ActionDeleteCluster represents running the command `okctl delete cluster`
-	ActionDeleteCluster Action = "deletecluster"
+	ActionDeleteCluster types.Action = "deletecluster"
 
 	// ActionScaffoldApplication represents running the command `okctl scaffold application`
-	ActionScaffoldApplication Action = "scaffoldapplication"
+	ActionScaffoldApplication types.Action = "scaffoldapplication"
 	// ActionApplyApplication represents running the command `okctl apply application`
-	ActionApplyApplication Action = "applyapplication"
+	ActionApplyApplication types.Action = "applyapplication"
+	// ActionDeleteApplication represents running the command `okctl delete application`
+	ActionDeleteApplication types.Action = "deleteapplication"
 
 	// ActionForwardPostgres represents running the command `okctl forward postgres`
-	ActionForwardPostgres Action = "forwardpostgres"
+	ActionForwardPostgres types.Action = "forwardpostgres"
 	// ActionAttachPostgres represents running the command `okctl attach postgres`
-	ActionAttachPostgres Action = "attachpostgres"
+	ActionAttachPostgres types.Action = "attachpostgres"
 
 	// ActionShowCredentials represents running the command `okctl show credentials`
-	ActionShowCredentials Action = "showcredentials"
+	ActionShowCredentials types.Action = "showcredentials"
 	// ActionUpgrade represents running the command `okctl upgrade`
-	ActionUpgrade Action = "upgradecluster"
+	ActionUpgrade types.Action = "upgradecluster"
 	// ActionVenv represents running the command `okctl venv`
-	ActionVenv Action = "venvcluster"
+	ActionVenv types.Action = "venvcluster"
 	// ActionVersion represents running the command `okctl version`
-	ActionVersion Action = "version"
+	ActionVersion types.Action = "version"
 
 	// ActionMaintenanceStateAcquireLock represents running the command `okctl maintenance state-acquire-lock
-	ActionMaintenanceStateAcquireLock Action = "stateacquirelock"
+	ActionMaintenanceStateAcquireLock types.Action = "stateacquirelock"
 	// ActionMaintenanceStateReleaseLock represents running the command `okctl maintenance state-release-lock
-	ActionMaintenanceStateReleaseLock Action = "statereleaselock"
+	ActionMaintenanceStateReleaseLock types.Action = "statereleaselock"
 	// ActionMaintenanceStateDownload represents running the command `okctl maintenance state-download
-	ActionMaintenanceStateDownload Action = "statedownload"
+	ActionMaintenanceStateDownload types.Action = "statedownload"
 	// ActionMaintenanceStateUpload represents running the command `okctl maintenance state-upload
-	ActionMaintenanceStateUpload Action = "stateupload"
+	ActionMaintenanceStateUpload types.Action = "stateupload"
 )
 
 const (
@@ -49,11 +53,11 @@ const (
 	LabelPhaseEnd = "end"
 )
 
-var commandExecutionDefinition = Definition{
-	Category: CategoryCommandExecution,
-	Actions: []Action{
+var Definition = types.Definition{
+	Category: Category,
+	Actions: []types.Action{
 		ActionScaffoldCluster, ActionApplyCluster, ActionDeleteCluster,
-		ActionScaffoldApplication, ActionApplyApplication,
+		ActionScaffoldApplication, ActionApplyApplication, ActionDeleteApplication,
 		ActionForwardPostgres, ActionAttachPostgres,
 		ActionShowCredentials, ActionUpgrade, ActionVenv, ActionVersion,
 		ActionMaintenanceStateAcquireLock, ActionMaintenanceStateReleaseLock,

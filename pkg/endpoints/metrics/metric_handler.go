@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics/types/brewokctlinstallation"
+	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics/types/commandexecution"
+	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints/metrics/types/installation"
+
 	"github.com/oslokommune/okctl-metrics-service/pkg/endpoints"
 
 	"github.com/sirupsen/logrus"
@@ -17,9 +21,9 @@ import (
 func generateMetricHandler(cfg config.Config, logger *logrus.Logger) (gin.HandlerFunc, endpoints.TeardownFn) {
 	counters := NewMetricRegistry()
 
-	counters.Add(commandExecutionDefinition)
-	counters.Add(installationDefinition)
-	counters.Add(brewOkctlInstallationDefinition)
+	counters.Add(commandexecution.Definition)
+	counters.Add(installation.Definition)
+	counters.Add(brewokctlinstallation.Definition)
 
 	return func(c *gin.Context) {
 		userAgent := c.GetHeader("User-Agent")
